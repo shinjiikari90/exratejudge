@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>환율의 신 ⚖️💸 — 내 환전, 현명했을까?</title>
+<style>
+  @font-face {
+    font-family: 'Pretendard';
+    src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/woff2/Pretendard-Regular.woff2') format('woff2');
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: 'Pretendard';
+    src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/woff2/Pretendard-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+  }
+  @font-face {
+    font-family: 'Pretendard';
+    src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/woff2/Pretendard-ExtraBold.woff2') format('woff2');
+    font-weight: 800;
+  }
+  @font-face {
+    font-family: 'Pretendard';
+    src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/woff2/Pretendard-Black.woff2') format('woff2');
+    font-weight: 900;
+  }
+
+  :root {
+    --bg: #FFFCF5;
+    --card: #FFFFFF;
+    --ink: #1B1B2F;
+    --ink-soft: #6B6B80;
+    --line: #F0ECE0;
+    --good: #00B87C;
+    --good-bg: #E4FBF1;
+    --bad: #FF5470;
+    --bad-bg: #FFEBEF;
+    --meh: #F5A300;
+    --meh-bg: #FFF5DE;
+    --buy: #21BFB8;
+    --sell: #FF9548;
+    --purple: #7C5CFC;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #FFFCF5; }
+
+  #app-root {
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 28px 16px 60px;
+    background-image:
+      radial-gradient(circle at 8% 12%, rgba(124,92,252,0.07) 0%, transparent 40%),
+      radial-gradient(circle at 92% 88%, rgba(255,149,72,0.08) 0%, transparent 40%);
+  }
+
+  .wrap { max-width: 480px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 24px; }
+  .header .kicker {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--purple);
+    background: #EFEAFF;
+    padding: 5px 12px;
+    border-radius: 100px;
+    margin-bottom: 10px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 900;
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+  }
+  .header p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .rate-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 10px 18px;
+    margin: 0 auto 22px;
+    width: fit-content;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    box-shadow: 0 2px 10px rgba(27,27,47,0.04);
+  }
+  .rate-strip .rate-value {
+    color: var(--ink);
+    font-weight: 900;
+    font-size: 15px;
+  }
+  .rate-strip .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--good);
+    box-shadow: 0 0 0 3px var(--good-bg);
+  }
+  .rate-strip.stale .dot { background: var(--meh); box-shadow: 0 0 0 3px var(--meh-bg); }
+
+  .card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 8px 28px rgba(27,27,47,0.06);
+    border: 1px solid var(--line);
+    margin-bottom: 18px;
+  }
+
+  .toggle {
+    display: flex;
+    background: #F4F2EA;
+    border-radius: 16px;
+    padding: 5px;
+    margin-bottom: 20px;
+  }
+  .toggle button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 12px 10px;
+    font-family: inherit;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--ink-soft);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all .18s ease;
+  }
+  .toggle button.active.buy { background: var(--buy); color: white; box-shadow: 0 4px 12px rgba(33,191,184,0.35); }
+  .toggle button.active.sell { background: var(--sell); color: white; box-shadow: 0 4px 12px rgba(255,149,72,0.35); }
+
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    margin-bottom: 7px;
+  }
+  .field .input-box {
+    display: flex;
+    align-items: center;
+    background: #FAF9F4;
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    padding: 4px 16px;
+    transition: border-color .15s ease;
+  }
+  .field .input-box:focus-within { border-color: var(--purple); background: white; }
+  .field .input-box input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--ink);
+    padding: 12px 0;
+    width: 100%;
+    min-width: 0;
+  }
+  .field .unit {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    margin-left: 8px;
+  }
+
+  .manual-toggle {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--purple);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    border: none;
+    padding: 16px;
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 900;
+    color: white;
+    background: linear-gradient(135deg, var(--purple), #9B7FFF);
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(124,92,252,0.35);
+    transition: transform .12s ease;
+  }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .result-card { display: none; }
+  .result-card.show { display: block; animation: slideUp .4s ease; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+  .gauge-wrap { position: relative; width: 220px; margin: 4px auto 8px; }
+  .gauge-wrap svg { width: 100%; display: block; }
+  .needle {
+    transform-origin: 110px 110px;
+    transition: transform 1s cubic-bezier(.34,1.56,.64,1);
+  }
+  .gauge-labels {
+    display: flex;
+    justify-content: space-between;
+    max-width: 220px;
+    margin: 0 auto 6px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--ink-soft);
+  }
+
+  .verdict-badge {
+    display: block;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    padding: 7px 16px;
+    border-radius: 100px;
+    margin: 0 auto 14px;
+    width: fit-content;
+  }
+  .verdict-badge.good { background: var(--good-bg); color: var(--good); }
+  .verdict-badge.bad { background: var(--bad-bg); color: var(--bad); }
+  .verdict-badge.meh { background: var(--meh-bg); color: var(--meh); }
+
+  .verdict-text {
+    font-size: 17px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.55;
+    margin-bottom: 18px;
+    padding: 0 4px;
+  }
+
+  .diff-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #FAF9F4;
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-bottom: 14px;
+  }
+  .diff-row .label { font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+  .diff-row .value { font-size: 20px; font-weight: 900; }
+  .diff-row .value.good { color: var(--good); }
+  .diff-row .value.bad { color: var(--bad); }
+  .diff-row .value.meh { color: var(--meh); }
+
+  .item-box {
+    border-radius: 16px;
+    padding: 16px 18px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.6;
+    text-align: center;
+  }
+  .item-box.good { background: var(--good-bg); color: #00875F; }
+  .item-box.bad { background: var(--bad-bg); color: #D93A56; }
+  .item-box.meh { background: var(--meh-bg); color: #C07E00; }
+  .item-box .big { font-size: 22px; display: block; margin-bottom: 2px; }
+
+  .reset-btn {
+    display: block;
+    margin: 16px auto 0;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .footnote {
+    text-align: center;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 20px;
+    line-height: 1.6;
+    opacity: 0.8;
+  }
+</style>
+</head>
+<body>
+<div id="app-root"></div>
+
+<script>
+(function(){
+  const ITEMS = [
+    { name: '아이폰', emoji: '📱', price: 1500000 },
+    { name: '해외여행 항공권', emoji: '🌏', price: 800000 },
+    { name: '에어팟', emoji: '🎧', price: 250000 },
+    { name: '오마카세 한 상', emoji: '🍣', price: 150000 },
+    { name: '국내선 항공권', emoji: '✈️', price: 100000 },
+    { name: '치킨', emoji: '🍗', price: 20000 },
+    { name: '영화표', emoji: '🎬', price: 15000 },
+    { name: '삼겹살 1인분', emoji: '🥓', price: 15000 },
+    { name: '아메리카노', emoji: '☕', price: 4500 },
+    { name: '김밥', emoji: '🍙', price: 3500 },
+    { name: '붕어빵', emoji: '🐟', price: 1000 },
+  ];
+
+  function itemsFor(krwAbs) {
+    for (const it of ITEMS) {
+      const count = Math.floor(krwAbs / it.price);
+      if (count >= 1 && count <= 40) {
+        return { ...it, count };
+      }
+    }
+    // fallback: smallest item, big count
+    const it = ITEMS[ITEMS.length - 1];
+    return { ...it, count: Math.floor(krwAbs / it.price) };
+  }
+
+  const state = {
+    mode: 'buy',
+    liveRate: null,
+    rateDate: null,
+    fetchFailed: false,
+    manualMode: false,
+  };
+
+  const root = document.getElementById('app-root');
+
+  function fmt(n) {
+    return Math.round(n).toLocaleString('ko-KR');
+  }
+
+  function render() {
+    root.innerHTML = `
+      <div class="wrap">
+        <div class="header">
+          <span class="kicker">💰 EXCHANGE JUDGE 💰</span>
+          <h1>환율의 신 ⚖️💸</h1>
+          <p>내 환전, 현명했을까 바보 같았을까?</p>
+        </div>
+
+        <div class="rate-strip ${state.fetchFailed ? 'stale' : ''}" id="rateStrip">
+          <span class="dot"></span>
+          <span>${state.liveRate ? '오늘 기준 환율' : (state.fetchFailed ? '자동 조회 실패 😢' : '환율 불러오는 중...')}</span>
+          <span class="rate-value" id="rateValueText">${state.liveRate ? fmt(state.liveRate) + '원' : (state.fetchFailed ? '-' : '⏳')}</span>
+          ${state.fetchFailed ? `<button class="manual-toggle" id="retryBtn" style="margin-left:4px">재시도</button>` : ''}
+        </div>
+
+        <div class="card">
+          <div class="toggle">
+            <button id="btnBuy" class="${state.mode === 'buy' ? 'active buy' : ''}">💵 달러를 샀어요</button>
+            <button id="btnSell" class="${state.mode === 'sell' ? 'active sell' : ''}">💴 달러를 팔았어요</button>
+          </div>
+
+          <div class="field">
+            <label>${state.mode === 'buy' ? '얼마어치 사셨나요?' : '얼마어치 파셨나요?'} (USD)</label>
+            <div class="input-box">
+              <input type="number" id="usdInput" inputmode="decimal" placeholder="예: 1000" min="0" />
+              <span class="unit">달러 🇺🇸</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>그때 적용받은 환율은요?</label>
+            <div class="input-box">
+              <input type="number" id="myRateInput" inputmode="decimal" placeholder="예: 1380" min="0" />
+              <span class="unit">원/달러</span>
+            </div>
+          </div>
+
+          <div class="field" id="manualRateField" style="display:${state.manualMode ? 'block' : 'none'}">
+            <label>오늘(비교) 환율을 직접 입력해주세요</label>
+            <div class="input-box">
+              <input type="number" id="manualRateInput" inputmode="decimal" placeholder="예: 1390" min="0" />
+              <span class="unit">원/달러</span>
+            </div>
+          </div>
+          ${!state.manualMode
+            ? `<button class="manual-toggle" id="manualToggleBtn">환율을 직접 입력할래요</button>`
+            : (state.liveRate
+                ? `<button class="manual-toggle" id="manualToggleBtn">자동 조회 환율 쓸래요</button>`
+                : `<span class="manual-toggle" style="text-decoration:none;cursor:default;color:var(--ink-soft)">자동 조회에 실패해서 직접 입력만 가능해요</span>`)
+          }
+
+          <div style="height:12px"></div>
+          <button class="submit-btn" id="judgeBtn">⚖️ 심판 받기</button>
+        </div>
+
+        <div class="card result-card" id="resultCard">
+          <div class="gauge-wrap">
+            <svg viewBox="0 0 220 130">
+              <path d="M 15 110 A 95 95 0 0 1 79 21" fill="none" stroke="#FF5470" stroke-width="16" stroke-linecap="round"/>
+              <path d="M 84 18 A 95 95 0 0 1 136 18" fill="none" stroke="#F5A300" stroke-width="16" stroke-linecap="round"/>
+              <path d="M 141 21 A 95 95 0 0 1 205 110" fill="none" stroke="#00B87C" stroke-width="16" stroke-linecap="round"/>
+              <g class="needle" id="needle">
+                <line x1="110" y1="110" x2="110" y2="35" stroke="#1B1B2F" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="110" cy="110" r="8" fill="#1B1B2F"/>
+              </g>
+            </svg>
+          </div>
+          <div class="gauge-labels">
+            <span>🤡 바보</span>
+            <span>😐 무난</span>
+            <span>🎉 현명</span>
+          </div>
+
+          <div class="verdict-badge" id="verdictBadge"></div>
+          <div class="verdict-text" id="verdictText"></div>
+
+          <div class="diff-row">
+            <span class="label">현재 환율 대비 손익</span>
+            <span class="value" id="diffValue"></span>
+          </div>
+
+          <div class="item-box" id="itemBox"></div>
+
+          <button class="reset-btn" id="resetBtn">다시 심판받기 🔄</button>
+        </div>
+
+        <div class="footnote">
+          환율은 매일 갱신되는 기준 환율(참고용)이며, 실제 은행 고시환율과 다를 수 있어요.<br/>
+          이 앱은 재미로 보는 심판입니다 😉
+        </div>
+      </div>
+    `;
+    attachEvents();
+  }
+
+  function attachEvents() {
+    document.getElementById('btnBuy').onclick = () => { state.mode = 'buy'; render(); };
+    document.getElementById('btnSell').onclick = () => { state.mode = 'sell'; render(); };
+    const manualBtn = document.getElementById('manualToggleBtn');
+    if (manualBtn) manualBtn.onclick = () => { state.manualMode = !state.manualMode; render(); };
+    const retryBtn = document.getElementById('retryBtn');
+    if (retryBtn) retryBtn.onclick = () => { state.fetchFailed = false; state.liveRate = null; render(); fetchRate(); };
+    document.getElementById('judgeBtn').onclick = judge;
+    const resetBtn = document.getElementById('resetBtn');
+    if (resetBtn) resetBtn.onclick = () => {
+      document.getElementById('resultCard').classList.remove('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+  }
+
+  function judge() {
+    const usd = parseFloat(document.getElementById('usdInput').value);
+    const myRate = parseFloat(document.getElementById('myRateInput').value);
+    const manualInput = document.getElementById('manualRateInput');
+    const currentRate = state.manualMode
+      ? parseFloat(manualInput ? manualInput.value : '')
+      : state.liveRate;
+
+    if (!usd || usd <= 0 || !myRate || myRate <= 0 || !currentRate || currentRate <= 0) {
+      alert('금액, 내가 적용받은 환율, 비교할 현재 환율을 모두 정확히 입력해주세요! 🙏');
+      return;
+    }
+
+    // buy: good if current > myRate (dollar got more valuable after I bought cheap)
+    // sell: good if myRate > current (I sold high before it dropped)
+    const diffPerWon = state.mode === 'buy' ? (currentRate - myRate) : (myRate - currentRate);
+    const diffPercent = (diffPerWon / currentRate) * 100;
+    const krwDiff = diffPerWon * usd;
+
+    let tier;
+    if (diffPercent > 0.6) tier = 'good';
+    else if (diffPercent < -0.6) tier = 'bad';
+    else tier = 'meh';
+
+    showResult(tier, diffPercent, krwDiff, usd, myRate, currentRate);
+  }
+
+  function showResult(tier, diffPercent, krwDiff, usd, myRate, currentRate) {
+    const card = document.getElementById('resultCard');
+    card.classList.add('show');
+
+    // needle: -90(bad) to 0(meh) to +90(good), clamp percent to [-5,5] mapped
+    const clamped = Math.max(-5, Math.min(5, diffPercent));
+    const angle = (clamped / 5) * 90; // -90..90
+    requestAnimationFrame(() => {
+      document.getElementById('needle').style.transform = `rotate(${angle}deg)`;
+    });
+
+    const badge = document.getElementById('verdictBadge');
+    const text = document.getElementById('verdictText');
+    const diffValue = document.getElementById('diffValue');
+    const itemBox = document.getElementById('itemBox');
+
+    const absDiff = Math.abs(krwDiff);
+    const item = itemsFor(absDiff);
+    const itemLine = item.count >= 1
+      ? `이 돈이면 <b>${item.emoji} ${item.name} ${item.count}${item.name === '해외여행 항공권' || item.name==='국내선 항공권' || item.name==='아이폰' || item.name==='에어팟' ? '개' : '개'}</b>는 너끈했겠네요!`
+      : `자잘하지만 그래도 어딘가요!`;
+
+    badge.className = 'verdict-badge ' + tier;
+    diffValue.className = 'value ' + tier;
+    itemBox.className = 'item-box ' + tier;
+
+    const actionWord = state.mode === 'buy' ? '사신' : '파신';
+    const rateWord = state.mode === 'buy' ? '살 때' : '팔 때';
+
+    if (tier === 'good') {
+      badge.textContent = '🎉 현명한 선택!';
+      text.innerHTML = `우와, 완전 신의 타이밍이었어요! 👏<br/>${fmt(myRate)}원에 ${actionWord} 그 감각, 인정할게요 ✨`;
+      diffValue.textContent = `+${fmt(absDiff)}원 🤑`;
+      itemBox.innerHTML = `<span class="big">${item.emoji}</span>${itemLine} 축하드려요! 🎊`;
+    } else if (tier === 'bad') {
+      badge.textContent = '🤡 다소 아쉬운 선택';
+      text.innerHTML = `이런... 조금만 더 기다리시지 그랬어요 😮‍💨<br/>${fmt(myRate)}원에 ${actionWord} 건 살짝 뼈아프네요.`;
+      diffValue.textContent = `-${fmt(absDiff)}원 💸`;
+      itemBox.innerHTML = `<span class="big">${item.emoji}</span>딱 ${item.name} ${item.count > 0 ? item.count + '개' : ''}만큼을 길바닥에 버리신 셈이에요...`;
+    } else {
+      badge.textContent = '😐 무난한 선택';
+      text.innerHTML = `음... 나쁜 선택은 아닌데,<br/>그렇다고 잘하셨다고도 못하겠어요...`;
+      diffValue.textContent = `${krwDiff >= 0 ? '+' : '-'}${fmt(absDiff)}원`;
+      itemBox.innerHTML = `<span class="big">🤷</span>그냥... 그런 날이었네요. 다음엔 잘하실 거예요!`;
+    }
+
+    // scroll to result
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+  }
+
+  async function fetchRate() {
+    // 1차: open.er-api.com (무료, 키 불필요, CORS 허용, 매일 갱신)
+    try {
+      const rate = await tryFetch('https://open.er-api.com/v6/latest/USD', (data) => {
+        if (data.result !== 'success' || !data.rates || !data.rates.KRW) throw new Error('invalid payload');
+        return { rate: data.rates.KRW, date: data.time_last_update_utc || null };
+      });
+      applyRate(rate);
+      return;
+    } catch (e) {
+      console.warn('1차 환율 API 실패, 2차 시도:', e);
+    }
+
+    // 2차 fallback: frankfurter.app (ECB 기준, 키 불필요)
+    try {
+      const rate = await tryFetch('https://api.frankfurter.app/latest?from=USD&to=KRW', (data) => {
+        if (!data.rates || !data.rates.KRW) throw new Error('invalid payload');
+        return { rate: data.rates.KRW, date: data.date || null };
+      });
+      applyRate(rate);
+      return;
+    } catch (e) {
+      console.error('2차 환율 API도 실패:', e);
+      state.fetchFailed = true;
+      state.manualMode = true;
+      render();
+    }
+  }
+
+  async function tryFetch(url, extract) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      return extract(data);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  function applyRate({ rate, date }) {
+    if (!rate || rate < 500 || rate > 5000) throw new Error('rate out of sane range: ' + rate);
+    state.liveRate = rate;
+    state.rateDate = date;
+    state.fetchFailed = false;
+    render();
+  }
+
+  render();
+  fetchRate();
+})();
+</script>
+</body>
+</html>
